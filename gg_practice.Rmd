@@ -17,7 +17,7 @@ library(paletteer)
 library(ggExtra)
 library(ggbeeswarm)
 library(gapminder)
-#library(sf)
+library(sf)
 ```
 
 ### Read in Lizard data
@@ -144,18 +144,150 @@ ggplot(data = lizards, aes(x = total_length,
 
 ```
 
+## `{scales}` the unsung hero of ggplot
+
+```{r}
+
+ggplot(data = lizards, aes(x = total_length,
+                           y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_gradient2(low = "darkmagenta", high = "darkolivegreen1",
+                       midpoint = 5)
+
+```
+```{r}
+
+ggplot(data = lizards, aes(x = total_length,
+                           y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_steps(low = "red", high= "black")
+
+
+```
+
+
+```{r}
+ggplot(data = lizards, aes(x = total_length,
+                           y = weight)) +
+  geom_point(aes(color = total_length)) +
+  scale_color_steps2(low = "blue", 
+                     mid = "white", 
+                     high = "orange",
+                     midpoint = 150,
+                     breaks = c(50, 75, 150, 180, 220, 280))
+```
+
+```{r}
+
+ggplot(data = lizards, aes(x = total_length,
+                           y = weight)) +
+  geom_point(aes(color = total_length)) +
+  scale_color_stepsn(colors = c("darkcyan", "lemonchiffon", "orchid4"),
+                     breaks = seq(from = 0, to = 300, by = 60))
+
+```
+
+Can create a theme in gg plot and save in an r package, then you can repeatedly use your theme across projects
+
+
+## `{paletteer}`
+
+paletteer aggregates palletes created across r packages
+
+```{r}
+#to reorder your variables in a more reusable way than just plain fct_reorder
+
+lizards_median <- lizards |> 
+  mutate(common_name = fct_reorder(common_name, total_length, .fun = median))
+
+#check how variable was recast as a factor
+levels(lizards_median$common_name)
+
+ggplot(data = lizards_median, aes(x = total_length,
+                           y = common_name)) +
+  geom_boxplot(aes(fill = common_name), 
+               show.legend = FALSE) +
+  scale_fill_paletteer_d(palette = "LaCroixColoR::Tangerine") +
+  theme_minimal()
+
+##to see more color palettes within paletteer: view(palettes_d_names) (or _c_names or _binned_names)
+#scale_element_paletteer()
+
+```
+
+```{r}
+
+ggplot(data = lizards, aes(x = total_length,
+                           y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_gradient(low = "bisque1", high = "violetred") +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_line(color = "deeppink1"),
+        panel.grid.minor.y = element_line(color = "cyan"),
+        panel.grid.minor.x = element_blank(),
+        panel.background = element_rect(fill = "lightblue2"),
+        axis.title.x = element_text(color = "purple")) +
+  annotate("text", x = 300, y = 5, label = "LIZARDSss", color = "hotpink1") +
+  geom_vline(xintercept = 250, linetype = "dashed", color = "orange", size = 2)
+
+
+```
+
+
+```{r}
+wws_lizards <- lizards |> 
+  filter(common_name == "western whiptail",
+         site == "sand")
+
+ggplot(data = wws_lizards, aes(x = total_length,
+                              y = weight)) +
+  geom_point() +
+  geom_text_repel(aes(label = toe_num))
+
+#geom_text labels points on the point, geom_text_repel labels offset so the labels are near but not directly on points
+
+```
+
+```{r}
+gapminder |> 
+  filter(year == 2002,
+         continent == "Europe") |> 
+  ggplot(aes(x = gdpPercap,
+             y = lifeExp)) +
+  geom_point() +
+  geom_text_repel(aes(label = country),
+                  size = 3) 
 
 
 
 
+```
+
+```{r}
+ggplot(data = lizards, aes(x = total_length,
+                           y = weight)) +
+  geom_point() +
+  gghighlight(weight == max(weight),
+              label_key = toe_num)
+
+```
+## Make a map
+
+```{r}
+#sf stands for simple features, all of the attributes are there attached to spatial data so you can work with it as a data frame
+
+jornada_veg <- read_sf(here("data_raw", "spatial_vegetation", "doc.kml"))
+
+ggplot() +
+  geom_sf(data = jornada_veg,
+          aes(fill = Name),
+          color = NA) +
+  theme_minimal() +
+  scale_fill_paletteer_d("miscpalettes::earthTones")
 
 
 
-
-
-
-
-
+```
 
 
 
