@@ -288,6 +288,78 @@ ggplot() +
 
 
 ```
+## Heat map!
+
+```{r}
+
+lizard_counts2 <- lizards |> 
+  mutate(date = lubridate::mdy(date)) |> 
+  #instead of making a separate column for year, do this:
+  count(year = lubridate::year(date), common_name) |> 
+  drop_na()
+
+```
+
+```{r}
+lizard_heat <- ggplot(data = lizard_counts2, aes(x = year,
+                                  y = common_name)) +
+  geom_tile(aes(fill = n), show.legend = FALSE) +
+  geom_text(aes(label = n), color = "white", size = 3) +
+  scale_fill_gradientn(colors = c("darkcyan","orchid4", "lightsalmon"))
+
+#set breaks / reset breaks to change where the gradient is filled
+
+```
+
+## Beeswarm
+
+```{r}
+whiptails <- lizards |> 
+  filter(common_name == "western whiptail") |> 
+  drop_na(total_length, weight)
+
+whiptail_bee <- ggplot(data = whiptails, aes(x = sex,
+                             y = weight)) +
+  geom_beeswarm(size = 0.5) +
+  geom_boxplot(alpha = 0)
+  
+
+```
+
+## Create a marginal plot
+
+```{r}
+
+whiptail_plot <- ggplot(data = whiptails, aes(x = total_length,
+                             y = weight)) +
+  geom_point(aes(color = sex)) +
+  scale_fill_paletteer_d("LaCroixColoR::Pamplemousse")
+
+ggMarginal(whiptail_plot, type = "boxplot",
+           groupColour = TRUE)
+
+
+
+
+```
+
+```{r}
+#Patchwork - allows you to put plot panels side by side
+
+((whiptail_bee + whiptail_plot) / lizard_heat) & theme_linedraw()
+
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
